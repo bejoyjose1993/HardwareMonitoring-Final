@@ -13,8 +13,6 @@ This repository contains a **Dockerized Full-Stack Application** with the follow
 - **Deployment**: AWS EC2 instance
 ---
 
-
-
 ## 🧱 Architecture Overview
 
 [ Angular App ] --> [ Spring Cloud Gateway ] --> [ Spring Boot Services ]
@@ -26,6 +24,14 @@ This repository contains a **Dockerized Full-Stack Application** with the follow
 Each component is containerized using Docker and orchestrated via Docker Compose for local development and deployment on an AWS EC2 instance.
 
 ---
+
+## ✅ Workflow
+
+1. **EdgeMonitor** collects CPU, RAM, Disk, GPU, and temperature metrics every few seconds.  
+2. Sends metrics via **HTTP POST** to the FastAPI `/ingest` endpoint.  
+3. FastAPI stores the latest metrics in memory (`metrics_store`).  
+4. Clients can query `/metrics` to get the most recent metrics.  
+5. Both EdgeMonitor and FastAPI run **concurrently** using `asyncio`.  
 
 ## 📦 Tech Stack
 

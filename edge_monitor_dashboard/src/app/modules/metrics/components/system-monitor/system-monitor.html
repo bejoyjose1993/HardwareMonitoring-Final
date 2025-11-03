@@ -1,11 +1,10 @@
 <div class="monitor-container">
-  <div class="notification-bar" *ngIf="showRamNotification">
+  <div class="notification-bar" *ngIf="(metrics?.ram?.percent || 0) > 90 && showRamNotification">
   ⚠️   RAM usage high ({{ metrics?.ram?.percent || 'N/A' }}%)
     <button class="close-btn" (click)="closeRamNotification()">×</button>
   </div>
   <!-- HEADER -->
   <h2 class="monitor-header">SYSTEM STATS</h2>
-
     <div class="main-card-rect">
         <!-- Circular SYSTEM STATUS card on top -->
         <div class="circle-card neon-glow main-card" *ngIf="metrics; else loading">
@@ -15,6 +14,7 @@
             <div><strong>RAM</strong><br>{{ metrics.ram.percent }}%</div>
             <div><strong>DISK</strong><br>{{ metrics.disk.percent }}%</div>
             <div><strong>GPU</strong><br>{{ metrics.gpu || 'N/A' }}</div>
+            <div><strong>BOOT TIME</strong><br>{{ metrics.total_system_runtime || "N/A" }}</div>
         </div>
     </div>
   </div>

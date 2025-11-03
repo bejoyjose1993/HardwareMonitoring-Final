@@ -45,7 +45,7 @@ public class AuthController {
 		
 		@GetMapping("/hello")
 		public String getMap(){
-			return "Hello";
+			return "API up and Running";
 		}
 		
 	    @PostMapping("/login")

@@ -203,3 +203,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Ignore all log files
+*.log
+
+# Ignore the entire logs directory
+logs/

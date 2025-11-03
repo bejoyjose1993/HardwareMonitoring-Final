@@ -13,6 +13,8 @@ This repository contains a **Dockerized Full-Stack Application** with the follow
 - **Deployment**: AWS EC2 instance
 ---
 
+
+
 ## 🧱 Architecture Overview
 
 [ Angular App ] --> [ Spring Cloud Gateway ] --> [ Spring Boot Services ]

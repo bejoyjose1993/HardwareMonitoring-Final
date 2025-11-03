@@ -1,4 +1,7 @@
 import aiohttp
+from ..logger_config import set_logging
+
+logger = set_logging("http_transfer")
 
 async def send(endpoint: str, data: dict):
     """
@@ -9,8 +12,8 @@ async def send(endpoint: str, data: dict):
         try:
             async with session.post(endpoint, json=data) as response:
                 if response.status == 200:
-                    print(f"[INFO] Successfully sent data to {endpoint}")
+                    logger.info(f"Successfully sent data to {endpoint}")
                 else:
-                    print(f"[WARN] HTTP {response.status} when sending to {endpoint}")
+                    logger.warning(f"HTTP {response.status} when sending to {endpoint}")
         except Exception as e:
-            print(f"[ERROR] HTTP send failed: {e}")
+            logger.exception(f"HTTP send failed: {e}")

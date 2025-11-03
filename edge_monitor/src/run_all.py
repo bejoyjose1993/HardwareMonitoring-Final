@@ -6,6 +6,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import signal
+from edge_monitor.logger_config import set_logging
+
+logger = set_logging("run_all")
 
 metrics_store = {}
 
@@ -21,7 +24,7 @@ app.add_middleware(
 @app.post("/ingest")
 async def ingest(data: dict):
     metrics_store.update(data)
-    print("\n✅ Metrics received:", data)
+    logger.info(f"Metrics received: {data}")
     return {"status": "ok"}
 
 @app.get("/metrics")
@@ -34,7 +37,7 @@ async def run_edge_monitor(shutdown_event: asyncio.Event):
     endpoint = os.getenv("ENDPOINT", "http://localhost:8000/ingest")
     interval = int(os.getenv("INTERVAL", "5"))
 
-    print(f"[CONFIG] Transport={transport}, Endpoint={endpoint}, Interval={interval}s")
+    logger.info(f"Transport={transport}, Endpoint={endpoint}, Interval={interval}s")
 
     monitor = EdgeMonitor(transport=transport, endpoint=endpoint, interval=interval)
     await monitor.run(shutdown_event)
@@ -56,7 +59,8 @@ async def main():
 
     # Ctrl+C handler
     def stop_app(sig, frame):
-        print("Exiting...")
+        
+        logger.info("Exiting...")
         shutdown_event.set()
 
     signal.signal(signal.SIGINT, stop_app)

@@ -23,6 +23,8 @@ RUN poetry config virtualenvs.create false \
 
 # Copy source code
 COPY src/ ./src/
+COPY tests/ ./tests/
+RUN poetry run pytest -v --disable-warnings
 
 # Set PYTHONPATH
 ENV PYTHONPATH=/app/src

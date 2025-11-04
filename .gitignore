@@ -80,3 +80,4 @@ Thumbs.db
 # ==========================================
 .github/workflows/*.bak
 .github/workflows/*.tmp
+/.metadata/

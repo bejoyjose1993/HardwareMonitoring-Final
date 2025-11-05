@@ -64,7 +64,11 @@ jobs:
         username: azureuser
         key: ${{ secrets.AZURE_VM_SSH_KEY }}
         script: |
-          sudo az acr login --name ${{ secrets.AZURE_REGISTRY_NAME }}
+          echo "Logging into Azure Container Registry..."
+          docker login ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io \
+            -u ${{ secrets.AZURE_REGISTRY_USERNAME }} \
+            -p ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
           cd ~/HardwareMonitoring-Final
           docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull
           docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down

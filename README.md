@@ -51,7 +51,7 @@ Each component is containerized using Docker and orchestrated via Docker Compose
 | Notification Queue     | Kafka                                                  |
 | Deployment             | Docker, Docker Compose                                 |
 | CICD                   | Git Actions                                            |
-| AWS Services           | Azure VM                                               |
+| Cloud Services         | Azure VM                                               |
 
 ---
 

@@ -30,7 +30,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     
   edgemonitor_backend:
-    image: bejoyjose/edgemonitor_backend:${IMAGE_TAG}
+    image: ${AZURE_REGISTRY_NAME}.azurecr.io/edgemonitor_backend:${IMAGE_TAG} 
     hostname: backend
     environment:
       - DB_URL=${DB_URL}
@@ -41,14 +41,14 @@ services:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
 
   edgemonitor_dashboard:
-    image: bejoyjose/edge_monitor_dashboard:${IMAGE_TAG}
+    image: ${AZURE_REGISTRY_NAME}.azurecr.io/edgemonitor_dashboard:${IMAGE_TAG}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - FRONTEND_PORT=${FRONTEND_PORT}
 
   edgemonitor_gateway:
-    image: bejoyjose/edgemonitor_gateway:${IMAGE_TAG}
+    image: ${AZURE_REGISTRY_NAME}.azurecr.io/edgemonitor_gateway:${IMAGE_TAG}
     environment:
       - APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS}
       - GATEWAY_SERVICE_URI=${GATEWAY_SERVICE_URI}
@@ -57,7 +57,7 @@ services:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
 
   edgemonitor_notification:
-    image: bejoyjose/edgemonitor_notification:${IMAGE_TAG}
+    image: ${AZURE_REGISTRY_NAME}.azurecr.io/edgemonitor_notification:${IMAGE_TAG}
     ports:
       - "${NOTIFICATION_PORT}:${NOTIFICATION_PORT}"
     environment:
@@ -68,7 +68,7 @@ services:
         - KAFKA_BOOTSTRAP_SERVER=${KAFKA_BOOTSTRAP_SERVER}      
 
   edge_monitor:
-    image: bejoyjose/edge_monitor:${IMAGE_TAG}
+    image: ${AZURE_REGISTRY_NAME}.azurecr.io/edge_monitor:${IMAGE_TAG}
     ports:
       - "${EDGE_MONITOR_PORT}:${EDGE_MONITOR_PORT}" 
     environment:

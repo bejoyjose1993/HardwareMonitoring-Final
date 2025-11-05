@@ -10,20 +10,22 @@ This repository contains a **Dockerized Full-Stack Application** with the follow
 - **Database**: MySQL  
 - **Caching**: Redis  
 - **Queueing**: Kafka  
-- **Deployment**: AWS EC2 instance
+- **Deployment**: Azure VM instance
 ---
-
 
 
 ## 🧱 Architecture Overview
 
-[ Angular App ] --> [ Spring Cloud Gateway ] --> [ Spring Boot Services ]
-| [ MySQL | Redis ]
+1] [ Angular App ] --> [ Spring Cloud Gateway ] --> [ Spring Boot Services ] | [ MySQL | Redis ]
+
+2] [ Angular App ] --> [ Spring Cloud Gateway ] --> [ Pythod_Edge Monitor ]
+
+3] [ Spring Boot Services ] --> [ Kafka ] --> [ Spring Notification Services ]
 
 ![Sysstem Architecture](Design%20Documents/System%20Architecture%20(2).png)
 
 
-Each component is containerized using Docker and orchestrated via Docker Compose for local development and deployment on an AWS EC2 instance.
+Each component is containerized using Docker and orchestrated via Docker Compose for local development and deployment on an Azure VM instance.
 
 ---
 
@@ -49,7 +51,7 @@ Each component is containerized using Docker and orchestrated via Docker Compose
 | Notification Queue     | Kafka                                                  |
 | Deployment             | Docker, Docker Compose                                 |
 | CICD                   | Git Actions                                            |
-| AWS Services           | AWS EC2                                                |
+| AWS Services           | Azure VM                                               |
 
 ---
 
@@ -64,8 +66,8 @@ Each component is containerized using Docker and orchestrated via Docker Compose
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/bejoyjose1993/HardwareMonitoring.git
-cd HardwareMonitoring
+git clone https://github.com/bejoyjose1993/HardwareMonitoring-Final.git
+cd HardwareMonitoring-Final
 ```
 
 
@@ -152,16 +154,10 @@ Redis: port 6379
 ![Dashboard Page](User%20Interface%20Images/Edge-Monitor%20Dashboard%20Page.png)
 
 
-## Loom Video Link
+## Azure CICD Deployment using GitHub Actions 
+A full-stack, containerized **Edge Monitor Application** deployed to an Azure VM instance using **GitHub Actions for automated CI/CD**, **Docker Compose**, and **Azure Container Registry**
 
-https://www.loom.com/share/29842c0f5d9748e68b42c76efc74262e?sid=46512cf1-5cd0-49e8-98bb-5d59938567ae
-
-
-
-## EC2 CICD Deployment using GitHub Actions 
-A full-stack, containerized **Edge Monitor Application** deployed to an AWS EC2 instance using **GitHub Actions for automated CI/CD**, **Docker Compose**, and **Docker Hub**
-
-Note:- EC2 instance will only have the folder  /HardwareMonitoring with below files
+Note:- Azure VM instance will only have the folder  /HardwareMonitoring-Final with below files
 - docker-compose.yml (Make sure its upto date and latest pulled from repo)
 - docker-compose.prod.yml (Make sure its upto date and latest pulled from repo)
 - .evn.production
@@ -171,10 +167,10 @@ Note:- EC2 instance will only have the folder  /HardwareMonitoring with below fi
 - ReadMe.md (Not Required)
 
 ### 🧱 Tech Stack
-| Layer      | Technology               |
-|------------|--------------------------|
-| CI/CD      | GitHub Actions           |
-| Deployment | AWS EC2 + Docker Compose |
+| Layer      | Technology                |
+|------------|---------------------------|
+| CI/CD      | GitHub Actions            |
+| Deployment | Azure VM + Docker Compose |
 
 ## 🚀 Automated CI/CD Workflow
 ### ✅ Trigger:
@@ -187,14 +183,16 @@ Note:- EC2 instance will only have the folder  /HardwareMonitoring with below fi
    - `edgemonitor-gateway`
    - `edgemonitor-notification`
    - `edge_monitor_dashboard`
-3. **Tag** and **push** to Docker Hub.
-4. **SSH into EC2** using `appleboy/ssh-action`.
-5. **Pull latest Docker images**.
-6. **Restart containers** via Docker Compose.
+3. **Tag** and **push** to Azure Container Registry.
+4. **SSH into VM** using `appleboy/ssh-action`. Log into Azure Container Registry from VM.
+5. **Pull latest containers** via Docker Compose.
+6. **Removes all** currently running containers using Docker Compose.
+7. **Restart containers** with new images via Docker Compose.
+8. **Prune** unused Images.
 
 ### 📂 Workflow file: `.github/workflows/deploy.yml`
 ```bash
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Azure
 
 on:
   push:
@@ -205,74 +203,84 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Set up Docker
       uses: docker/setup-buildx-action@v3
       
-    - name: Log in to Docker Hub
+    # Step 1 — Log in to Azure Container Registry (ACR)
+    - name: Log in to Azure Container Registry
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        
+        registry: ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io
+        username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+        password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+    # Step 2 — Build and Push backend 
     - name: Build and push edgemonitor-backend image
       run: |
-        docker build -t bejoyjose/edgemonitor_backend ./edgemonitor-backend
-        docker push bejoyjose/edgemonitor_backend:latest
+        docker build -t ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_backend:latest ./edgemonitor-backend
+        docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_backend:latest
 
+    # Step 3 — Build and Push gateway
     - name: Build and push edgemonitor_gateway image
       run: |
-        docker build -t bejoyjose/edgemonitor_gateway ./edgemonitor-gateway
-        docker push bejoyjose/edgemonitor_gateway:latest
+        docker build -t ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_gateway:latest ./edgemonitor-gateway
+        docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_gateway:latest
 
+    # Step 4 — Build and Push notification service
     - name: Build and push edgemonitor_notification service image
       run: |
-        docker build -t bejoyjose/edgemonitor_notification ./edgemonitor-notification
-        docker push bejoyjose/edgemonitor_notification:latest
+        docker build -t ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_notification:latest ./edgemonitor-notification
+        docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_notification:latest
 
+    # Step 5 — Build and Push Edge Monitor (Python)
     - name: Build and push edge_monitor service image
       run: |
-        docker build -t bejoyjose/edge_monitor ./edge_monitor
-        docker push bejoyjose/edge_monitor:latest
+        docker build -t ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edge_monitor:latest ./edge_monitor
+        docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edge_monitor:latest
 
+    # Step 6 — Build and Push frontend (Angular)
     - name: Build and push edge_monitor_dashboard image
       run: |
         docker build \
           --build-arg BASE_API_URL=${{ secrets.BASE_API_URL }} \
           --build-arg FAST_BASE_API_URL=${{ secrets.FAST_BASE_API_URL }} \
-          -t bejoyjose/edge_monitor_dashboard ./edge_monitor_dashboard
-        docker push bejoyjose/edge_monitor_dashboard:latest
+          -t ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_dashboard:latest ./edge_monitor_dashboard
+        docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/edgemonitor_dashboard:latest
 
-    - name: Deploy to EC2
+    # Step 7 — Deploy to Azure VM (via SSH)
+    - name: Deploy to Azure VM
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ec2-user
-        key: ${{ secrets.EC2_SSH_KEY }}
+        host: ${{ secrets.AZURE_VM_HOST }}
+        username: azureuser
+        key: ${{ secrets.AZURE_VM_SSH_KEY }}
         script: |
-          docker pull bejoyjose/edgemonitor_backend:latest
-          docker pull bejoyjose/edgemonitor_gateway:latest
-          docker pull bejoyjose/edgemonitor_notification:latest
-          docker pull bejoyjose/edge_monitor_dashboard:latest
-          docker pull bejoyjose/edge_monitor:latest
-          cd /home/ec2-user/HardwareMonitoring
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
+          echo "Logging into Azure Container Registry..."
+          docker login ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io \
+            -u ${{ secrets.AZURE_REGISTRY_USERNAME }} \
+            -p ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+          cd ~/HardwareMonitoring-Final
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production pull
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production down
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.production up -d
           docker image prune -a -f
+
 ```
 
 ###  GitHub Secrets Required 
-| Secret Name       | Description                               |
-| ----------------- | ----------------------------------------- |
-| `DOCKER_USERNAME` | Your Docker Hub username                  |
-| `DOCKER_PASSWORD` | Your Docker Hub password/security token   |
-| `EC2_HOST`        | Public IP or domain of your EC2           |
-| `EC2_SSH_KEY`     | Your EC2 private key (`.pem`) as a secret |
-| `BASE_API_URL`    | http://xx.xx.xxx.xx:8082                  |
-| `FAST_API_URL`    | http://xx.xx.xxx.xx:8000                  |
+| Secret Name               | Description                                 |
+| --------------------------| ------------------------------------------- |
+| `AZURE_REGISTRY_NAME`     | Your Azure Registry name                    |
+| `AZURE_REGISTRY_USERNAME` | Your Azure Container Registry username      |
+| `AZURE_REGISTRY_PASSWORD` | Your Azure Container Registry password      |
+| `AZURE_VM_HOST`           | Public IP or domain of your Azure VM        |
+| `AZURE_VM_SSH_KEY`        | Your Azure private key (`.pem`) as a secret |
+| `BASE_API_URL`            | http://xx.xx.xxx.xx:8082                    |
+| `FAST_API_URL`            | http://xx.xx.xxx.xx:8000                    |
 
 ###  ✅ How to Deploy
 Just push code to the main branch — that’s it!
@@ -284,18 +292,17 @@ GitHub Actions will:
 -Build → Push → Deploy
 -No manual steps required.
 
-## On Restart of EC2 (As EIP is not configured)
-Note:- If you start and stop the EC2 instance the public ip will change and hence we might require changing the EC2_HOST and BASE_API_URL to the latest URL and also manually update .env.production file in the EC2 instance. This is because we aint using Elastic ip.
+## If the Azure VM Ip changes
+Note:- If you start and stop the Azure instance the public ip doestn't change unlike in EC2 W/O EIP 
+Here if the VM ip changes we might require changing the EC2_HOST and BASE_API_URL to the latest URL and also manually update .env.production file in the VM instance.
 
-1] Inside .env.production (Chnage following field values *APP_CORS_ALLOWED_ORIGINS Field change = Public IPv4 address and Public DNS) e.g. -> APP_CORS_ALLOWED_ORIGINS=http://xx.xx.xxx.xx,http://ec2-xx-xx-xxx-xx.eu-north-1.compute.amazonaws.com
+1] Inside .env.production (Chnage following field values *APP_CORS_ALLOWED_ORIGINS Field change = Public IPv4 address and Public DNS) e.g. -> APP_CORS_ALLOWED_ORIGINS=http://xx.xx.xxx.xx,http://xx.xx.xxx.xx:4200.
 
 2] Change EC2_HOST inside secrets (To Public IPv4 address) e.g. ->  xx.xx.xxx.xx
 
 3] BASE_API_URL should be changed to Public IPv4 address:8082. e.g. For EC2 -> http://xx.xx.xxx.xx:8082
 
 4] FAST_API_URL should be changed to Public IPv4 address:8000. e.g. For EC2 -> http://xx.xx.xxx.xx:8000
-
-Note:- Used Kafka Docker image, can also use MSK but its not available of free tire.
 
 ## Testing Endpoints
 You can test backend APIs via(If rules are set correctly):

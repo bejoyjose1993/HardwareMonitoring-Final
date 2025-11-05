@@ -312,3 +312,72 @@ curl http://<ec2-public-ip>:8082/api/auth/hello
 ```
 Use tools like Postman for more complex testing.
 
+
+## Azure VM Manual Deployment Instructions
+### 1. Use Azure Console (using Bastion) or SSH into VM
+
+Authentication Type : SSH Private Key from Local File
+Username: Your VM username
+Local File: Your saved "*.pem" file
+
+### 2. Install Docker & Docker Compose
+```bash
+# 1] Update Ubuntu packages
+   sudo apt update
+   sudo apt upgrade -y
+
+# 2] Install Docker
+   sudo apt install -y docker.io
+   sudo systemctl start docker
+   sudo systemctl enable docker
+   sudo usermod -aG docker $USER
+   
+   # Log out and back in for the group change to take effect
+   exit
+   # Reconnect and check docker
+   docker --version
+
+# 3] Remove legacy Docker Compose packages
+   sudo apt remove docker-compose python3-compose -y
+
+# 4] Add Docker official repository (for Compose plugin)
+   sudo apt install -y ca-certificates curl gnupg lsb-release
+   sudo mkdir -p /etc/apt/keyrings
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+   
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   sudo apt update
+
+# 5] Install Docker Compose V2 plugin
+   sudo apt install docker-compose-plugin -y
+   docker compose version
+```
+
+### 3. Clone and Run
+
+```bash
+git clone https://github.com/bejoyjose1993/HardwareMonitoring-Final.git
+cd HardwareMonitoring-Final
+docker-compose --env-file .env.local up --build
+```
+
+### 5. Expose IP and Ports 
+
+✅ Step-by-Step: Setting Inbound Rules on Azure Console
+-  Log in to the Azure Console
+-  Search Network security group
+-  Identify the Security Group
+-  Navigate to "*-nsg"
+-  Open Setting tab > Inbound security rules
+-  Click + ADD button
+-  ADD Inbound Rules
+
+| Type         | Protocol | Port Range | Priority   | Source               | Description                        |
+| ------------ | -------- | ---------- | ---------- | -------------------- | ---------------------------------- |
+| Custom TCP   | TCP      | 8080       | 1000       | Your IP              | Spring Backend                     |
+| Custom TCP   | TCP      | 8082       | 1001       | Your IP              | Spring Gateway                     |
+| Custom TCP   | TCP      | 8000       | 1003       | Your IP              | Python EdgeMonitor                 |
+| Custom TCP   | TCP      | 4200       | 1002       | Your IP or 0.0.0.0/0 | Angular Dev Server                 |
+| HTTP         | TCP      | 80         | 8082       | Anywhere (0.0.0.0/0) | For web traffic (if using port 80) |
+| HTTPS        | TCP      | 443        | 8082       | Anywhere             | For HTTPS (optional)               |
+| SSH          | TCP      | 22         | 8082       | Your IP              | SSH access                         |

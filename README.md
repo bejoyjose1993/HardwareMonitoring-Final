@@ -22,7 +22,7 @@ This repository contains a **Dockerized Full-Stack Application** with the follow
 
 3] [ Spring Boot Services ] --> [ Kafka ] --> [ Spring Notification Services ]
 
-![Sysstem Architecture](Design%20Documents/System%20Architecture%20(2).png)
+![Sysstem Architecture](Design%20Documents/System%20Architecture%20(2).jpg)
 
 
 Each component is containerized using Docker and orchestrated via Docker Compose for local development and deployment on an Azure VM instance.

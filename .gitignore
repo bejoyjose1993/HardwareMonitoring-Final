@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+*.env
+*.venv
+
+# Poetry
+.poetry/
+poetry.lock
+
+# Docker
+*.log
+*.db
+*.sqlite
+
+# ==========================================
+# Global ignores
+# ==========================================
+*.log
+*.tmp
+*.swp
+*.bak
+
+# ==========================================
+# Node.js / Angular (frontend)
+# ==========================================
+/edge_monitor_dashboard/node_modules/
+edge_monitor_dashboard/.angular/cache/
+/edge_monitor_dashboard/dist/
+/edge_monitor_dashboard/.env
+
+# ==========================================
+# Java / Spring Boot (backend & gateway)
+# ==========================================
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+**/*.iml
+**/*.log
+**/.env
+**/.idea/
+
+# ==========================================
+# Docker
+# ==========================================
+**/.dockerignore
+docker-compose.override.yml
+# Ignore production docker-compose
+# docker-compose.prod.yml
+# docker-compose.yml
+
+# Avoid accidentally committing env or secrets
+.env*
+!*.example
+
+*.pem
+*.key
+*.crt
+*.jks
+secrets/
+
+# ==========================================
+# OS/System files
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# VSCode / IDE config
+# ==========================================
+.vscode/
+.idea/
+
+# ==========================================
+# GitHub Actions artifacts (optional)
+# ==========================================
+.github/workflows/*.bak
+.github/workflows/*.tmp
+/.metadata/

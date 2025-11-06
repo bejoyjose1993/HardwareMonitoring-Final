@@ -1,0 +1,55 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: edgemonitor_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d  # Optional: to import .sql file
+
+  redis:
+    image: redis:7-alpine
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      - zookeeper
+
+  edgemonitor_backend:
+    environment:
+      - TZ=Europe/Stockholm
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      - redis
+      - mysql
+      - kafka
+
+  edgemonitor_dashboard:
+    # environment:
+      # - TZ=Europe/Stockholm
+    depends_on:
+      - edgemonitor_gateway
+      - edge_monitor
+
+  edgemonitor_gateway:
+    environment:
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      - edgemonitor_backend
+      - redis
+
+  edgemonitor_notification:
+    depends_on:
+      - kafka
+
+  edge_monitor:
+    restart: unless-stopped
+    
+volumes:
+  mysql_data:

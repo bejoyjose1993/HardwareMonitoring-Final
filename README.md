@@ -382,4 +382,5 @@ docker-compose --env-file .env.local up --build
 | HTTPS        | TCP      | 443        | 8082       | Anywhere             | For HTTPS (optional)               |
 | SSH          | TCP      | 22         | 8082       | Your IP              | SSH access                         |
 
+
  

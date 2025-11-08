@@ -49,6 +49,7 @@ edge_monitor_dashboard/.angular/cache/
 # ==========================================
 **/.dockerignore
 docker-compose.override.yml
+docker-compose.aks.yml
 # Ignore production docker-compose
 # docker-compose.prod.yml
 # docker-compose.yml
@@ -81,3 +82,4 @@ Thumbs.db
 .github/workflows/*.bak
 .github/workflows/*.tmp
 /.metadata/
+k8s-specifications/

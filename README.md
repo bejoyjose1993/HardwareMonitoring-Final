@@ -383,4 +383,3 @@ docker-compose --env-file .env.local up --build
 | SSH          | TCP      | 22         | 8082       | Your IP              | SSH access                         |
 
  
- 
